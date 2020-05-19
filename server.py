@@ -26,8 +26,8 @@ bullets = []
 
 # print(players)
 def threaded_client(conn, currentPlayer):
-    player = Player(currentPlayer, random.randint(50, 800), random.randint(50, 1000))
-    print(player)
+    global connections
+    player = Player(currentPlayer, random.randint(50, 1000), random.randint(50, 800))
     players.append(player)
     conn.send(pickle.dumps(player))
     reply = ''
@@ -40,22 +40,21 @@ def threaded_client(conn, currentPlayer):
                 print("Disconnected")
                 break
             else:
-                if data == "0":
-                    print("0 nega")
-                    # p = pickle.loads(conn.recv(2048))
+                if data[0] == '0':
+                    print("[LOG] collided")
                     for player in players:
-                        if player.idx == currentPlayer:
-                            p = players[players.index(player)]
-                            bullets.append(Bullet(p.pivot, p.turret.angle))
-                    reply = bullets
-                else:
+                        if player.idx == data[1].idx:
+                            players[players.index(player)] = data[1]
+                    reply = players
+                elif data[0] == '1':
                     for player in players:
+                        # print(f"shu wle {len(player.bullets)}")
                         if player.idx == currentPlayer:
-                            players[players.index(player)] = data
+                            players[players.index(player)] = data[1]
                     reply = players
 
-                print("Received: ", data)
-                print("Sending: ", reply)
+                # print("Received: ", data)
+                # print("Sending: ", reply)
 
             conn.sendall(pickle.dumps(reply))
         except Exception as e:
@@ -66,13 +65,16 @@ def threaded_client(conn, currentPlayer):
         if player.idx == currentPlayer:
             players.remove(player)
     print("Lost Connection")
+    connections -= 1
     conn.close()
 
 
 currentPlayer = 0
+connections = 0
 while True:
     conn, addr = s.accept()
     print(f"[CONN] Connected to: {addr}")
 
     thread.start_new_thread(threaded_client, (conn, currentPlayer))
     currentPlayer += 1
+    connections += 1

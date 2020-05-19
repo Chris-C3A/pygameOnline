@@ -3,7 +3,7 @@ import math
 
 
 class Bullet(object):
-    def __init__(self, pivot, angle, damage=25):
+    def __init__(self, player, pivot, angle, damage=25):
         """
         init Bullet object
         :param pivot: (x, y)
@@ -18,6 +18,8 @@ class Bullet(object):
         self.vel = 20
         self.damage = damage
 
+        self.player = player
+
     def draw(self, win):
         """
         draws and updates bullet object
@@ -25,9 +27,15 @@ class Bullet(object):
         :return: None
         """
         pygame.draw.circle(win, self.color, (int(self.x), int(self.y)), self.radius)
-        # for i in range(50):
-            # pygame.draw.circle(win, self.color, (self.x,self.y), self.radius)
-        # self.x += self.vel * self.facing
-        # print(self.angle)
+
+    def move(self):
+        """
+        movement of bullet
+        :return: None
+        """
         self.x += self.vel * math.sin(math.radians(self.angle))
         self.y += self.vel * math.cos(math.radians(self.angle)) * -1
+
+    def collide(self, player):
+        # print(self.player.idx == player.idx)
+        return player.x < self.x < player.x + player.w and player.y < self.y < player.y + player.h

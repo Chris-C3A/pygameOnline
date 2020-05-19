@@ -20,6 +20,7 @@ class Network:
             return pickle.loads(self.client.recv(2048))
         except socket.error as e:
             print("Could not connect to server", f"Error: {e}")
+            return False  
 
     def send(self, data):
         try:
@@ -27,3 +28,6 @@ class Network:
             return pickle.loads(self.client.recv(2048))
         except socket.error as e:
             print(e)
+
+    def disconnect(self):
+        self.client.close()

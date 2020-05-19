@@ -2,6 +2,7 @@ import pygame
 import os
 import math
 from src.turret import Turret
+from src.bullet import Bullet
 
 
 class Player:
@@ -28,6 +29,7 @@ class Player:
         self.angle = 0  # counter clockwise angle of the sprite
 
         self.turret = Turret(self)
+        self.bullets = []
         
     def draw(self, win, rotated_img, rect):
         """
@@ -38,6 +40,7 @@ class Player:
         :return: None
         """
         win.blit(rotated_img, rect)
+        self.hitbox(win)
 
         self.turret.x, self.turret.y = self.x+15, self.y-22
 
@@ -62,3 +65,14 @@ class Player:
 
     def update_pivot(self):
         self.pivot = [self.x + self.w / 2, self.y + self.h / 2]
+
+    def fire(self):
+        self.bullets.append(Bullet(self, self.pivot, self.turret.angle))
+
+    def hitbox(self, win):
+        pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.w, self.h), 1)
+        # alternate hitbox
+        # pygame.draw.rect(win, (255, 0, 0), rect, 1)
+
+    def got_hit(self):
+        self.health -= 25
