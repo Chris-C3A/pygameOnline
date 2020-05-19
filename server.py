@@ -40,21 +40,14 @@ def threaded_client(conn, currentPlayer):
                 print("Disconnected")
                 break
             else:
-                if data[0] == '0':
-                    print("[LOG] collided")
+                if data[0] == '1':
                     for player in players:
-                        if player.idx == data[1].idx:
-                            players[players.index(player)] = data[1]
-                    reply = players
-                elif data[0] == '1':
-                    for player in players:
-                        # print(f"shu wle {len(player.bullets)}")
                         if player.idx == currentPlayer:
                             players[players.index(player)] = data[1]
                     reply = players
 
-                # print("Received: ", data)
-                # print("Sending: ", reply)
+                print("Received: ", data)
+                print("Sending: ", reply)
 
             conn.sendall(pickle.dumps(reply))
         except Exception as e:
@@ -64,6 +57,7 @@ def threaded_client(conn, currentPlayer):
     for player in players:
         if player.idx == currentPlayer:
             players.remove(player)
+
     print("Lost Connection")
     connections -= 1
     conn.close()
