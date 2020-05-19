@@ -1,6 +1,5 @@
-# pygameOnline by: c3a#1737
+# pygameOnline by: **_c3a#1737_**
 
-##This the first online game with pygame and sockets
-
+## This the first online game with pygame and sockets
 
 
