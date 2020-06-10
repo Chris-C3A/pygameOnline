@@ -52,6 +52,8 @@ def threaded_client(conn, currentPlayer):
                         if player.idx == currentPlayer:
                             players[players.index(player)] = data[1]
                     reply = players
+                elif data[0] == '2':
+                    pass
 
                 # print("Received: ", data)
                 # print("Sending: ", reply)
@@ -73,7 +75,7 @@ currentPlayer = 0
 connections = 0
 while True:
     conn, addr = s.accept()
-    print(f"[CONN] Connected to: {addr}")
+    printf("[CONN] Connected to: {addr}")
 
     thread.start_new_thread(threaded_client, (conn, currentPlayer))
     currentPlayer += 1

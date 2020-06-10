@@ -1,3 +1,6 @@
+import pygame
+from src.player import Player
+
 class Game:
     def __init__(self, idx):
         self.idx = idx
@@ -9,6 +12,13 @@ class Game:
 
     def get_bullets(self):
         return self.bullets
+
+    def add_player(self, playerID):
+        player = Player(playerID, random.randint(50, 1000), random.randint(50, 800))
+        self.players.append(player)
+
+    def add_bullet(self, bullet):
+        self.bullets.append(bullet)
 
     # def collide(self):
     #     for bullet in self.bullets:

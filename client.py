@@ -47,17 +47,17 @@ def redraw_game_window(main_player, n):
 
     for bullet in main_player.bullets:
         bullet.move()
-        # for player in players:
-        #     if player.idx == main_player.idx:
-        #         continue
-        #
-        #     if bullet.collide(player):
-        #         print("[LOG] COLLISION")
-        #         player.health -= 25
-        #         players = n.send(["0", player])
-        #         # player.got_hit()
-        #         # main_player.health -= 25
-        #         main_player.bullets.pop(main_player.bullets.index(bullet))
+        for player in players:
+            if player.idx == main_player.idx:
+                continue
+
+            if bullet.collide(player):
+                print("[LOG] COLLISION")
+                # player.health -= 25
+                # players = n.send(["0", player])
+                # player.got_hit()
+                main_player.health -= 25
+                main_player.bullets.pop(main_player.bullets.index(bullet))
 
         if bullet.x > WIDTH or bullet.x < 0 or bullet.y > HEIGHT or bullet.y < 0:
             main_player.bullets.pop(main_player.bullets.index(bullet))
@@ -69,6 +69,7 @@ def redraw_game_window(main_player, n):
             if bullet.collide(main_player):
                 print('[LOG] collision')
                 main_player.health -= 25
+                # n.send(['2', bullet])
                 player.bullets.pop(player.bullets.index(bullet))
 
     for player in players:
