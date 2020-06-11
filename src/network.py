@@ -11,7 +11,7 @@ class Network:
 
         self.p = self.connect()
 
-    def getPlayerObject(self):
+    def get_idx(self):
         return self.p
 
     def connect(self):
@@ -20,7 +20,7 @@ class Network:
             return pickle.loads(self.client.recv(2048))
         except socket.error as e:
             print("Could not connect to server", f"Error: {e}")
-            return False  
+            return None
 
     def send(self, data):
         try:

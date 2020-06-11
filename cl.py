@@ -9,10 +9,6 @@ from src.network import Network
 WIDTH, HEIGHT = 1200, 900
 FPS = 120
 
-# TODO
-# map generation?
-# walls n shit
-
 pygame.init()
 
 screen = (WIDTH, HEIGHT)
@@ -34,46 +30,13 @@ gun_img = pygame.transform.scale(pygame.image.load(
     (285 // scale, 560 // scale)
 )
 
-# player = Player(x, y, scale)
 
-bullets = []
-players = []
-
-
-def redraw_game_window(main_player, n):
+def redraw_game_window(idx):
     global players
     # draw background image
     win.blit(bg, (0, 0))
 
-    for bullet in main_player.bullets:
-        bullet.move()
-        for player in players:
-            if player.idx == main_player.idx:
-                continue
-
-            if bullet.collide(player):
-                print("[LOG] COLLISION")
-                # player.health -= 25
-                # players = n.send(["0", player])
-                # player.got_hit()
-                main_player.health -= 25
-                main_player.bullets.pop(main_player.bullets.index(bullet))
-
-        if bullet.x > WIDTH or bullet.x < 0 or bullet.y > HEIGHT or bullet.y < 0:
-            main_player.bullets.pop(main_player.bullets.index(bullet))
-
-    for player in players:
-        if player.idx == main_player.idx:
-            continue
-        for bullet in player.bullets:
-            if bullet.collide(main_player):
-                print('[LOG] collision')
-                main_player.health -= 25
-                # n.send(['2', bullet])
-                player.bullets.pop(player.bullets.index(bullet))
-
-    for player in players:
-        print(player.health)
+    for player in players.values():
         for bullet in player.bullets:
             bullet.draw(win)
 
@@ -86,36 +49,40 @@ def redraw_game_window(main_player, n):
         player.turret.draw(win, rotated_img, rect)
 
     font = pygame.font.Font('freesansbold.ttf', 20)
-    text = font.render("Primmary Ammo: " + str(main_player.turret.primary_ammo), True, (0, 0, 0))
+    text = font.render("Primmary Ammo: " + str(players[idx].turret.primary_ammo), True, (0, 0, 0))
     win.blit(text, (50, 100))
+
+    # send request to update server
+    n.send({"server": "update"})
 
     pygame.display.update()
 
 
-def event_handling(player):
+def event_handling():
     global bullets
+    global n
+
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    player.update_pivot()
-    player.turret.rotate(mouse_x, mouse_y)
+    n.send({"mouse":{"x": mouse_x, "y": mouse_y}})
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
 
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and player.turret.primary_ammo > 0:
-            player.fire()
-            player.turret.primary_ammo -= 1
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            n.send({"key": "space"})
 
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_a]:
-        player.rotate(direction=-1)
+        n.send({"key": "a"})
     elif keys[pygame.K_d]:
-        player.rotate(direction=1)
+        n.send({"key": "d"})
 
     if keys[pygame.K_w]:
-        player.move(direction=-1)
+        n.send({"key": "w"})
     elif keys[pygame.K_s]:
-        player.move(direction=0.7)
+        n.send({"key": "s"})
 
 
 def rotate_image(surface, angle, pivot, offset):
@@ -134,23 +101,27 @@ def rotate_image(surface, angle, pivot, offset):
     return rotated_image, rect  # Return the rotated image and shifted rect.`
 
 
+n = Network()
 def main():
     global players
-    n = Network()
-    main_player = n.getPlayerObject()
-    if not main_player:
+    global n
+    idx = n.get_idx()["idx"]
+    if idx is None:
         print("error connecting")
         exit(1)
+
     while True:
         clock.tick(FPS)
-        players = n.send(['1', main_player])
+        players = n.send({"get": "players"})
+        print(players)
 
-        if main_player.health <= 0:
+        if players[idx].health <= 0:
             print("YOU DIED")
             n.disconnect()
             exit(0)
-        event_handling(main_player)
-        redraw_game_window(main_player, n)
+
+        event_handling()
+        redraw_game_window(idx)
 
 
 if __name__ == "__main__":
