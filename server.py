@@ -6,7 +6,7 @@ from src.bullet import Bullet
 import pickle
 import random
 
-HOST = "192.168.100.62"  # 192.168.100.62
+HOST = "192.168.100.149"  # 192.168.100.62
 PORT = 5569
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,8 +26,8 @@ players = {}
 def threaded_client(conn, idx):
     global players
     global connections
-    WIDTH, HEIGHT = 1200, 900
-    player = Player(idx, random.randint(50, 1000), random.randint(50, 800))
+    WIDTH, HEIGHT = 800, 800
+    player = Player(idx, random.randint(50, WIDTH-150), random.randint(50, HEIGHT-150))
     players[idx] = player
     conn.send(pickle.dumps({"idx": idx}))
     reply = ''
