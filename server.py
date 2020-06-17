@@ -6,12 +6,12 @@ from src.player import Player
 from src.bullet import Bullet
 import pickle
 import random
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
-HOST = "192.168.100.149"
-PORT = int(os.getenv("PORT"))
-WIDTH, HEIGHT = int(os.getenv("WIDTH")), int(os.getenv("HEIGHT"))
+HOST = "127.0.0.1"
+PORT = 5569
+WIDTH, HEIGHT = 800, 800
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
