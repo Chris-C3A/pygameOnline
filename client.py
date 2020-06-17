@@ -2,13 +2,16 @@
 import pygame
 import sys
 import os
-# from src.player import Player
-# from src.bullet import Bullet
 from src.network import Network
+from dotenv import load_dotenv
+load_dotenv()
 
-WIDTH, HEIGHT = 800, 800
+# GLOBAL VARS
+WIDTH, HEIGHT = int(os.getenv("WIDTH")), int(os.getenv("HEIGHT"))
 FPS = 60
-
+TANK_W, TANK_H = 500, 637
+GUN_W, GUN_H = 285, 560
+screen = (WIDTH, HEIGHT)
 username = ''
 
 def startup_menu():
@@ -23,8 +26,7 @@ startup_menu()
 
 pygame.init()
 
-screen = (WIDTH, HEIGHT)
-pygame.display.set_caption('Tanks!')
+pygame.display.set_caption('TankGame.io')
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" % (360, 100)
 
 clock = pygame.time.Clock()
@@ -35,20 +37,22 @@ x, y, scale = WIDTH / 2, HEIGHT / 2, 10
 # font family
 font = pygame.font.Font('freesansbold.ttf', 20)
 
+# loading sprites
 bg = pygame.image.load("resources/background.jpg")
 tank_img = pygame.transform.scale(pygame.image.load(
     os.path.join("resources", "tank.png")),
-    (500 // scale, 637 // scale)
+    (TANK_W // scale, TANK_H // scale)
 )
 gun_img = pygame.transform.scale(pygame.image.load(
     os.path.join("resources", "gun.png")),
-    (285 // scale, 560 // scale)
+    (GUN_W // scale, GUN_H // scale)
 )
 
  
+# render fps
 def update_fps():
 	fps = str(int(clock.get_fps()))
-	fps_text = font.render(fps, 1, pygame.Color("red"))
+	fps_text = font.render(fps, True, (255, 0, 0))
 	return fps_text
 
 
@@ -124,7 +128,7 @@ def rotate_image(surface, angle, pivot, offset):
 
 
 
-n = Network()
+n = Network(os.getenv("IP"), int(os.getenv("PORT")))
 def main():
     global players
     global n
@@ -144,9 +148,11 @@ def main():
         win.blit(bg, (0, 0))
 
         if players[idx].health <= 0:
-            print("YOU DIED")
-            n.disconnect()
-            exit(0)
+            print("You Died")
+            n.send({"dead": idx})
+            # print("YOU DIED")
+            # n.disconnect()
+            # exit(0)
 
         # show fps
         win.blit(update_fps(), (WIDTH/2,10))

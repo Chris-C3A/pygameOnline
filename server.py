@@ -1,13 +1,17 @@
 import socket
 import _thread as thread
 import sys
+import os
 from src.player import Player
 from src.bullet import Bullet
 import pickle
 import random
+from dotenv import load_dotenv
+load_dotenv()
 
-HOST = "192.168.100.149"  # 192.168.100.62
-PORT = 5569
+HOST = "192.168.100.149"
+PORT = int(os.getenv("PORT"))
+WIDTH, HEIGHT = int(os.getenv("WIDTH")), int(os.getenv("HEIGHT"))
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -26,7 +30,6 @@ players = {}
 def threaded_client(conn, idx):
     global players
     global connections
-    WIDTH, HEIGHT = 800, 800
     player = Player(idx, random.randint(50, WIDTH-150), random.randint(50, HEIGHT-150))
     players[idx] = player
     conn.send(pickle.dumps({"idx": idx}))
@@ -84,6 +87,14 @@ def threaded_client(conn, idx):
 
                             if bullet.x > WIDTH or bullet.x < 0 or bullet.y > HEIGHT or bullet.y < 0:
                                 players[idx].bullets.pop(players[idx].bullets.index(bullet))
+                elif "dead" in data:
+                    temp_id = data['dead']
+
+                    # TODO change to function to reset player
+                    players[temp_id].x = random.randint(50, WIDTH-150)
+                    players[temp_id].y = random.randint(50, HEIGHT-150)
+                    players[temp_id].health = 100
+                    reply = ''
 
                 # print("Received: ", data)
                 # print("Sending: ", reply)

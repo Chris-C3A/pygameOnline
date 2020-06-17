@@ -32,6 +32,8 @@ class Player:
         self.bullets = []
 
         self.name = "Anonymous"
+        self.score = 0
+        self.damage = 0
         
     def draw(self, win, rotated_img, rect):
         """
