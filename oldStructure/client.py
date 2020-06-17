@@ -2,12 +2,16 @@
 import pygame
 import sys
 import os
-# from src.player import Player
-# from src.bullet import Bullet
-from src.network import Network
+from src.player import Player
+from src.bullet import Bullet
+# from src.network import Network
 
 WIDTH, HEIGHT = 800, 800
-FPS = 60
+FPS = 120
+
+# TODO
+# map generation?
+# walls n shit
 
 pygame.init()
 
@@ -20,9 +24,6 @@ win = pygame.display.set_mode(screen)
 
 x, y, scale = WIDTH / 2, HEIGHT / 2, 8
 
-# font family
-font = pygame.font.Font('freesansbold.ttf', 20)
-
 bg = pygame.image.load("resources/background.jpg")
 tank_img = pygame.transform.scale(pygame.image.load(
     os.path.join("resources", "tank.png")),
@@ -33,17 +34,51 @@ gun_img = pygame.transform.scale(pygame.image.load(
     (285 // scale, 560 // scale)
 )
 
- 
+# player = Player(x, y, scale)
+
+bullets = []
+players = []
+font = pygame.font.Font('freesansbold.ttf', 20)
+
+
 def update_fps():
 	fps = str(int(clock.get_fps()))
 	fps_text = font.render(fps, 1, pygame.Color("red"))
 	return fps_text
 
 
-def redraw_game_window(idx):
+def redraw_game_window(main_player):
     global players
 
-    for player in players.values():
+    for bullet in main_player.bullets:
+        bullet.move()
+        for player in players:
+            if player.idx == main_player.idx:
+                continue
+
+            if bullet.collide(player):
+                print("[LOG] COLLISION")
+                # player.health -= 25
+                # players = n.send(["0", player])
+                # player.got_hit()
+                main_player.health -= 25
+                main_player.bullets.pop(main_player.bullets.index(bullet))
+
+        if bullet.x > WIDTH or bullet.x < 0 or bullet.y > HEIGHT or bullet.y < 0:
+            main_player.bullets.pop(main_player.bullets.index(bullet))
+
+    for player in players:
+        if player.idx == main_player.idx:
+            continue
+        for bullet in player.bullets:
+            if bullet.collide(main_player):
+                print('[LOG] collision')
+                main_player.health -= 25
+                # n.send(['2', bullet])
+                player.bullets.pop(player.bullets.index(bullet))
+
+    for player in players:
+        print(player.health)
         for bullet in player.bullets:
             bullet.draw(win)
 
@@ -55,43 +90,37 @@ def redraw_game_window(idx):
         rotated_img, rect = rotate_image(gun_img, player.turret.angle, player.pivot, player.turret.offset)
         player.turret.draw(win, rotated_img, rect)
 
-    # font = pygame.font.Font('freesansbold.ttf', 20)
-    text = font.render("Primmary Ammo: " + str(players[idx].turret.primary_ammo), True, (0, 0, 0))
-    health = font.render("health: " + str(players[idx].health), True, (0, 0, 0))
-    win.blit(text, (50, 20))
-    win.blit(health, (WIDTH-250, 20))
-
-    # send request to update server
-    n.send({"server": "update"})
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    text = font.render("Primmary Ammo: " + str(main_player.turret.primary_ammo), True, (0, 0, 0))
+    win.blit(text, (50, 100))
 
     pygame.display.update()
 
 
-def event_handling():
+def event_handling(player):
     global bullets
-    global n
-
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    n.send({"mouse":{"x": mouse_x, "y": mouse_y}})
-
+    player.update_pivot()
+    player.turret.rotate(mouse_x, mouse_y)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
 
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            n.send({"key": "space"})
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and player.turret.primary_ammo > 0:
+            player.fire()
+            player.turret.primary_ammo -= 1
 
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_a]:
-        n.send({"key": "a"})
+        player.rotate(direction=-1)
     elif keys[pygame.K_d]:
-        n.send({"key": "d"})
+        player.rotate(direction=1)
 
     if keys[pygame.K_w]:
-        n.send({"key": "w"})
+        player.move(direction=-1)
     elif keys[pygame.K_s]:
-        n.send({"key": "s"})
+        player.move(direction=0.7)
 
 
 def rotate_image(surface, angle, pivot, offset):
@@ -110,32 +139,31 @@ def rotate_image(surface, angle, pivot, offset):
     return rotated_image, rect  # Return the rotated image and shifted rect.`
 
 
-n = Network()
+players = []
 def main():
     global players
-    global n
-    data = n.get_idx()
-    if data is None:
-        print("Error connecting to server...")
-        exit(1)
-    idx = data["idx"]
-
+    # n = Network()
+    # main_player = n.getPlayerObject()
+    # if not main_player:
+    #     print("error connecting")
+    #     exit(1)
+    main_player = Player(0, 200, 200)
+    players.append(main_player)
     while True:
         clock.tick(FPS)
-        players = n.send({"get": "players"})
         # draw background image
         win.blit(bg, (0, 0))
+        # players = n.send(['1', main_player])
 
-        if players[idx].health <= 0:
+        if main_player.health <= 0:
             print("YOU DIED")
             n.disconnect()
             exit(0)
 
-        # show fps
         win.blit(update_fps(), (WIDTH/2,10))
 
-        event_handling()
-        redraw_game_window(idx)
+        event_handling(main_player)
+        redraw_game_window(main_player)
 
 
 if __name__ == "__main__":

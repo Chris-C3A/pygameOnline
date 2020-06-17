@@ -6,7 +6,7 @@ from src.bullet import Bullet
 import pickle
 import random
 
-HOST = "192.168.100.62"  # 192.168.100.62
+HOST = "192.168.100.149"  # 192.168.100.62
 PORT = 5569
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,40 +20,62 @@ except socket.error as e:
 s.listen()
 print("[LOG] Server Started! Waiting for connection...")
 
-players = []
-bullets = []
 
+players = {}
 
-# print(players)
-def threaded_client(conn, currentPlayer):
+def threaded_client(conn, idx):
+    global players
     global connections
-    player = Player(currentPlayer, random.randint(50, 1000), random.randint(50, 800))
-    players.append(player)
-    conn.send(pickle.dumps(player))
+    WIDTH, HEIGHT = 800, 800
+    player = Player(idx, random.randint(50, WIDTH-150), random.randint(50, HEIGHT-150))
+    players[idx] = player
+    conn.send(pickle.dumps({"idx": idx}))
     reply = ''
     while True:
         try:
             data = pickle.loads(conn.recv(2048))
-            # players[currentPlayer] = data
 
             if not data:
                 print("Disconnected")
                 break
             else:
-                if data[0] == '0':
-                    print("[LOG] collided")
-                    for player in players:
-                        if player.idx == data[1].idx:
-                            players[players.index(player)] = data[1]
-                    reply = players
-                elif data[0] == '1':
-                    for player in players:
-                        # print(f"shu wle {len(player.bullets)}")
-                        if player.idx == currentPlayer:
-                            players[players.index(player)] = data[1]
-                    reply = players
-                elif data[0] == '2':
-                    pass
+                if "get" in data:
+                    if data["get"] == "players":
+                        reply = players
+                elif "key" in data:
+                    if data["key"] == "w":
+                        players[idx].move(direction=-1)
+                    elif data["key"] == "s":
+                        players[idx].move(direction=0.7)
+                    elif data["key"] == "a":
+                        players[idx].rotate(direction=-1)
+                    elif data["key"] == "d":
+                        players[idx].rotate(direction=1)
+                    elif data["key"] == "space":
+                        if players[idx].turret.primary_ammo > 0:
+                            players[idx].fire()
+                            players[idx].turret.primary_ammo -= 1
+                elif "mouse" in data:
+                    players[idx].update_pivot()
+                    players[idx].turret.rotate(data["mouse"]["x"], data["mouse"]["y"])
+                elif "server" in data:
+                    if data["server"] == "update":
+                        for bullet in players[idx].bullets:
+                            bullet.move()
+
+                            # collision
+                            for player in players.values():
+                                if player.idx == idx:
+                                    continue
+
+                                if bullet.collide(player):
+                                    print("[LOG] collision")
+                                    player.health -= 25
+                                    players[idx].bullets.pop(players[idx].bullets.index(bullet))
+
+
+                            if bullet.x > WIDTH or bullet.x < 0 or bullet.y > HEIGHT or bullet.y < 0:
+                                players[idx].bullets.pop(players[idx].bullets.index(bullet))
 
                 # print("Received: ", data)
                 # print("Sending: ", reply)
@@ -63,9 +85,7 @@ def threaded_client(conn, currentPlayer):
             print(e)
             break
 
-    for player in players:
-        if player.idx == currentPlayer:
-            players.remove(player)
+    del players[idx]
     print("Lost Connection")
     connections -= 1
     conn.close()
@@ -75,7 +95,7 @@ currentPlayer = 0
 connections = 0
 while True:
     conn, addr = s.accept()
-    printf("[CONN] Connected to: {addr}")
+    print(f"[CONN] Connected to: {addr}")
 
     thread.start_new_thread(threaded_client, (conn, currentPlayer))
     currentPlayer += 1
