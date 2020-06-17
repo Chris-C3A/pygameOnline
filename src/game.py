@@ -1,3 +1,5 @@
+# class to handle multiple games
+
 import pygame
 from src.player import Player
 

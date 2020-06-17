@@ -6,7 +6,7 @@ from src.bullet import Bullet
 
 
 class Player:
-    def __init__(self, idx, x, y, scale=8):
+    def __init__(self, idx, x, y, scale=10):
         """
         init player object
         :param idx: int (player id)
@@ -30,6 +30,8 @@ class Player:
 
         self.turret = Turret(self)
         self.bullets = []
+
+        self.name = "Anonymous"
         
     def draw(self, win, rotated_img, rect):
         """
@@ -41,6 +43,17 @@ class Player:
         """
         win.blit(rotated_img, rect)
         self.hitbox(win)
+
+        # render player's username
+        font = pygame.font.Font('freesansbold.ttf', 14)
+        nameText = font.render(self.name, True, (0, 0, 0))
+        text_rect = nameText.get_rect(center=(self.x + self.w/2, self.y-20))
+        win.blit(nameText, text_rect)
+
+        # draw health bar
+        # todo remove hardcoded values
+        pygame.draw.rect(win, (255, 0, 0), (self.x, self.y-10, 50, 8))
+        pygame.draw.rect(win, (0, 128, 0), (self.x, self.y-10, 50*self.health/100 , 8))
 
         self.turret.x, self.turret.y = self.x+15, self.y-22
 
@@ -70,8 +83,8 @@ class Player:
         self.bullets.append(Bullet(self, self.pivot, self.turret.angle))
 
     def hitbox(self, win):
-        pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.w, self.h), 1)
-        # alternate hitbox
+            pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.w, self.h), 1)
+            # alternate hitbox
         # pygame.draw.rect(win, (255, 0, 0), rect, 1)
 
     def got_hit(self):

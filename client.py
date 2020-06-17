@@ -9,6 +9,18 @@ from src.network import Network
 WIDTH, HEIGHT = 800, 800
 FPS = 60
 
+username = ''
+
+def startup_menu():
+    global username
+    username = input("enter username: ")
+
+startup_menu()
+
+# TODO create startup menu
+# TODO add env variables for effeciency
+# TODO scaling
+
 pygame.init()
 
 screen = (WIDTH, HEIGHT)
@@ -18,7 +30,7 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" % (360, 100)
 clock = pygame.time.Clock()
 win = pygame.display.set_mode(screen)
 
-x, y, scale = WIDTH / 2, HEIGHT / 2, 8
+x, y, scale = WIDTH / 2, HEIGHT / 2, 10
 
 # font family
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -60,6 +72,7 @@ def redraw_game_window(idx):
     health = font.render("health: " + str(players[idx].health), True, (0, 0, 0))
     win.blit(text, (50, 20))
     win.blit(health, (WIDTH-250, 20))
+
 
     # send request to update server
     n.send({"server": "update"})
@@ -110,6 +123,7 @@ def rotate_image(surface, angle, pivot, offset):
     return rotated_image, rect  # Return the rotated image and shifted rect.`
 
 
+
 n = Network()
 def main():
     global players
@@ -119,6 +133,9 @@ def main():
         print("Error connecting to server...")
         exit(1)
     idx = data["idx"]
+
+    # send username to server
+    n.send({"username": username})
 
     while True:
         clock.tick(FPS)

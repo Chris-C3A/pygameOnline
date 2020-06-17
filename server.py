@@ -30,6 +30,14 @@ def threaded_client(conn, idx):
     player = Player(idx, random.randint(50, WIDTH-150), random.randint(50, HEIGHT-150))
     players[idx] = player
     conn.send(pickle.dumps({"idx": idx}))
+
+    # set username of the player
+    try:
+        username = pickle.loads(conn.recv(2048))
+        players[idx].name = username["username"]
+        conn.send(pickle.dumps({"OK": players[idx].name}))
+    except Exception as e:
+        print(e)
     reply = ''
     while True:
         try:
