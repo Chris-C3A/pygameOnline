@@ -9,8 +9,8 @@ import random
 # from dotenv import load_dotenv
 # load_dotenv()
 
-HOST = "127.0.0.1"
-PORT = 5569
+HOST = "localhost"
+PORT = 5555
 WIDTH, HEIGHT = 800, 800
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
