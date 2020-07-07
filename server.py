@@ -9,7 +9,7 @@ import random
 # from dotenv import load_dotenv
 # load_dotenv()
 
-HOST = "localhost"
+HOST = "192.168.100.149"
 PORT = 5555
 WIDTH, HEIGHT = 800, 800
 

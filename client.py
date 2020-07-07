@@ -8,7 +8,7 @@ load_dotenv()
 
 # GLOBAL VARS
 WIDTH, HEIGHT = int(os.getenv("WIDTH")), int(os.getenv("HEIGHT"))
-FPS = 60
+FPS = 30
 TANK_W, TANK_H = 500, 637
 GUN_W, GUN_H = 285, 560
 screen = (WIDTH, HEIGHT)
@@ -48,7 +48,7 @@ gun_img = pygame.transform.scale(pygame.image.load(
     (GUN_W // scale, GUN_H // scale)
 )
 
- 
+
 # render fps
 def update_fps():
 	fps = str(int(clock.get_fps()))
